@@ -1,0 +1,52 @@
+vim.api.nvim_create_user_command("Loveconf", function()
+  local root = vim.fn.getcwd()
+  local luarc = root .. "/.luarc.json"
+
+  -- prevent overwrite
+  if vim.fn.filereadable(luarc) == 1 then
+    print(".luarc.json already exists")
+    return
+  end
+
+  local home = os.getenv("HOME")
+
+  local content = string.format(
+    [[
+{
+  "runtime": {
+    "version": "LuaJIT"
+  },
+
+  "diagnostics": {
+    "globals": ["vim", "love"]
+  },
+
+  "workspace": {
+    "library": [
+      "/usr/local/share/lua/5.1",
+      "/usr/local/share/lua/5.1/lib",
+      "%s/.local/share/LuaAddons/love/api"
+    ],
+    "checkThirdParty": false
+  },
+
+  "telemetry": {
+    "enable": false
+  }
+}
+]],
+    home
+  )
+
+  local file = io.open(luarc, "w")
+  if file then
+    file:write(content)
+    file:close()
+    print(".luarc.json created ✅")
+
+    -- optional: restart LSP automatically
+    vim.cmd("LspRestart")
+  else
+    print("Failed to create .luarc.json")
+  end
+end, {})

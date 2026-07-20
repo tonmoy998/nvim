@@ -1,0 +1,20 @@
+{
+  "Require Express": {
+    "prefix": "er",
+    "body": ["const express = require('express');"],
+    "description": "Require express module"
+  },
+  "Create Route": {
+    "prefix": "cr",
+    "body": [
+      "router.${1:get}('${2:/}', async (req, res) => {",
+      "    try {",
+      "        ${0:// code goes here}",
+      "    } catch (error) {",
+      "        res.status(500).json({ message: error.message });",
+      "    }",
+      "});"
+    ],
+    "description": "Create an Express router route with try-catch block"
+  }
+}

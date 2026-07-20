@@ -1,0 +1,18 @@
+{
+  "Love2D Starter Template": {
+    "prefix": "love",
+    "body": [
+      "function love.load()",
+      "    love.graphics.setBackgroundColor(0.1, 0.1, 0.15)",
+      "end",
+      "",
+      "function love.update(dt)",
+      "end",
+      "",
+      "function love.draw()",
+      "    love.graphics.print(\"Hello Love2D\", 10, 10)",
+      "end"
+    ],
+    "description": "Starter Love2D template with background + text"
+  }
+}

@@ -1,0 +1,62 @@
+
+local M = {}
+local fzf = require("fzf-lua")
+
+-- Main function to trigger the FZF picker
+M.show_images = function()
+  -- Supported extensions formatted for the shell 'find' command
+  -- Looks like: -name "*.png" -o -name "*.jpg" ...
+  local extensions = { "png", "jpg", "jpeg", "gif", "webp", "bmp" }
+  local find_args = {}
+  for i, ext in ipairs(extensions) do
+    table.insert(find_args, string.format("-name '*.%s' -o -name '*.%s'", ext, ext:upper()))
+  end
+  local find_expr = table.concat(find_args, " -o ")
+
+  -- Construct a high-performance shell pipeline:
+  -- 1. 'find' locates all images.
+  -- 2. 'xargs' batches them to 'identify' to minimize process spawns.
+  -- 3. 'awk' formats the output as "filepath │ widthxheight" on the fly.
+  local cmd = string.format(
+    "find . -type f \\( %s \\) -print0 | " ..
+    "xargs -0 -I {} sh -c '" ..
+    "  dims=$(identify -format \"%%wx%%h\" \"$1\" 2>/dev/null);" ..
+    "  echo \"$1 │ ${dims:-Unknown}\"" ..
+    "' _ {}",
+    find_expr
+  )
+
+  fzf.fzf_exec(cmd, {
+    prompt = "Images (Path │ Dim)> ",
+    previewer = false,
+    fzf_opts = {
+      ["--delimiter"] = "│",
+      ["--preview-window"] = "hidden",
+      ["--layout"] = "reverse",
+    },
+    winopts = {
+      width = 0.90,
+      height = 0.60,
+    },
+    actions = {
+      ["default"] = function(selected)
+        if not selected or #selected == 0 then return end
+        
+        -- Clean and extract file path
+        local choice = selected[1]
+        local filepath = choice:match("^(.-)%s*│")
+        
+        if filepath then
+          -- Strip leading "./" if present and trailing spaces
+          filepath = filepath:gsub("^./", ""):gsub("%s+$", "")
+          vim.cmd("edit " .. vim.fn.fnameescape(filepath))
+        end
+      end,
+    },
+    fn_transform = function(x)
+      return fzf.utils.ansi_codes.magenta(x)
+    end
+  })
+end
+
+return M
